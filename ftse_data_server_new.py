@@ -333,28 +333,30 @@ def run_background_update():
             logger.error(f"後台更新任務錯誤: {str(e)}", exc_info=True)
             time.sleep(5)  # 發生錯誤時等待5秒
 
-# 初始化數據和後台更新（在應用啟動時執行）
-logger.info("啟動富台指數據服務...")
+def initialize_service():
+    """初始化服務（只執行一次）"""
+    global ftse_data, last_update_time
+    
+    logger.info("啟動富台指數據服務...")
+    
+    # 初始化數據
+    try:
+        get_ftse_data_from_histock()
+    except Exception as e:
+        logger.error(f"初始化數據失敗: {str(e)}")
+        # 即使失敗也繼續，後台線程會重試
+    
+    # 啟動後台更新線程
+    updater_thread = threading.Thread(target=run_background_update, daemon=True)
+    updater_thread.start()
+    logger.info("後台數據更新線程已啟動")
 
-# 確保必要的套件已安裝
-try:
-    import pytz
-    import bs4
-except ImportError as e:
-    logger.error(f"缺少必要套件: {str(e)}")
-    logger.info("請執行: pip install pytz beautifulsoup4 lxml")
-    exit(1)
-
-# 初始化數據
-get_ftse_data_from_histock()
-
-# 啟動後台更新線程
-updater_thread = threading.Thread(target=run_background_update, daemon=True)
-updater_thread.start()
-logger.info("後台數據更新線程已啟動")
+# 當模組被導入時自動初始化（適用於 Gunicorn）
+initialize_service()
 
 if __name__ == '__main__':
-    # 啟動服務（支援 Railway 的 PORT 環境變數）
+    # 本地開發模式
     import os
     port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port, debug=False)
+
