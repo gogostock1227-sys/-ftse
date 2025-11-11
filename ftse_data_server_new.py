@@ -275,6 +275,24 @@ def get_ftse_data():
     with ftse_lock:
         return ftse_data
 
+@app.route('/', methods=['GET'])
+def index():
+    """根路徑 - 健康檢查"""
+    return jsonify({
+        'status': 'ok',
+        'service': 'FTSE Taiwan Index API',
+        'version': '1.0',
+        'endpoints': {
+            '/api/ftse': 'Get FTSE Taiwan Index data',
+            '/health': 'Health check'
+        }
+    })
+
+@app.route('/health', methods=['GET'])
+def health():
+    """健康檢查端點"""
+    return jsonify({'status': 'healthy', 'timestamp': time.time()})
+
 @app.route('/api/ftse', methods=['GET'])
 def api_get_ftse_data():
     """API端點獲取富台指數據"""
