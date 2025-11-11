@@ -1,1 +1,1 @@
-web: gunicorn ftse_data_server_new:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+web: gunicorn test_app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug
